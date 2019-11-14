@@ -153,10 +153,10 @@ setMethod("getFileConnection", signature(.Object="EPOCObject", connname="charact
 			if (!is.null(.Object$fileConnections[[connname]]) && class(.Object$fileConnections[[connname]]) == "externalptr") {
 				if (!missing(filepath) && !is.null(filepath) && filepath != "") {
 					# this call will only reopen if not open or path or mode has changed
-					isopen <- .Call("openRcppFileConn", .Object$fileConnections[[connname]], filepath, openmode, PACKAGE="EPOC")
+					isopen <- .Call("openRcppFileConn", .Object$fileConnections[[connname]], openmode, PACKAGE="EPOC")
 				} else {
 					# this call will only reopen if it is closed
-					isopen <- .Call("openRcppFileConn", .Object$fileConnections[[connname]], PACKAGE="EPOC")
+					isopen <- .Call("openRcppFileConn", .Object$fileConnections[[connname]], "", PACKAGE="EPOC")
 				}
 				if (isopen) return(.Object$fileConnections[[connname]])
 			}
