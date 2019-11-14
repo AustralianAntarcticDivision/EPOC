@@ -1,0 +1,16 @@
+\documentclass{article}
+%\VignetteIndexEntry{EPOC API} 
+%\VignettePackage{EPOC}
+
+\usepackage{pdfpages}
+
+\title{EPOC API}
+\author{Troy Robertson}
+\date{May 1, 2012} 
+
+\begin{document}
+
+%\href{file:EPOC_API.pdf}{EPOC API}
+\includepdf[fitpaper=true]{EPOC_API.pdf}
+
+\end{document} 

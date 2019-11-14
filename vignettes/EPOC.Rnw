@@ -1,0 +1,16 @@
+\documentclass{article}
+%\VignetteIndexEntry{EPOC User Manual} 
+%\VignettePackage{EPOC}
+
+\usepackage{pdfpages}
+
+\title{EPOC User Manual}
+\author{Troy Robertson, Andrew Constable}
+\date{May 1, 2012} 
+
+\begin{document}
+
+%\href{file:EPOC.pdf}{EPOC User Manual}
+\includepdf[fitpaper=true]{EPOC.pdf}
+
+\end{document} 

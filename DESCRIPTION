@@ -1,0 +1,14 @@
+Package: EPOC
+Type: Package
+Title: Ecosystem Productivity Ocean Climate (EPOC) - Modelling Framework
+Version: 0.5.3
+Date: 2015-05-24
+Author: Andrew Constable, Troy Robertson
+Maintainer: Troy Robertson <troy.robertson@aad.gov.au>
+Description: An object-oriented modelling framework built around a number of modules: Environment, Biota, Activities, Management, Output and Presentation
+License: GPL (>= 2)
+Depends: methods, Rcpp
+Suggests: inline
+LinkingTo: Rcpp
+Collate: Support.R Signature.R EPOCObject.R Element.R Spatial.R Period.R Management.R Environment.R Biota.R Activity.R Presentation.R Output.R Universe.R Scenario.R Calendar.R Controller.R EPOC.R
+ByteCompile: TRUE
