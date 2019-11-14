@@ -24,6 +24,32 @@ From: https://github.com/AndrewJConstable/EPOCbase/tree/6b387ba39a312df5d674592a
 
 Status of that was committed with tag v0.5.3 at https://github.com/AustralianAntarcticDivision/EPOC/releases/tag/v0.5.3
 
+## Status
+
+* `epoc()` runs but fails at getFileConnection()
+
+```
+epoc()
+Instantiating model universe using EPOC package demo data input files.
+Output data files written to: ../EPOC/runtime
+Loading universe...
+Starting EPOC Controller...
+        ID: 11001
+ Full Name: EPOC - Ecosystem Productivity Ocean and Climate - Coupled Ocean Ecology Model System
+Short Name: EPOC
+  Revision: 0.5.1
+   Authors: A.Constable, T.Robertson
+ Last Edit: 25 May 2012
+Calendar setup...
+Starting simulation...
+Initialising Scenario 1...
+Commencing Scenario 1...
+ Error in .local(.Object, connname, ...) : 
+  Expecting a single string value: [type=builtin; extent=1]. Timing stopped at: 0.61 0.2 4.85
+
+```
+
+
 ## Fixes / TODO
 
 * `openRcppFileConn` had incompatible signatures
