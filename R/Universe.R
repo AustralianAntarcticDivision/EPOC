@@ -554,18 +554,18 @@ setMethod(".resetReporting", signature(.Object="Universe"),
 
 # Close log file if it is open and loglevel warrants it
 setGeneric(".stopReporting", function(.Object, ...) standardGeneric(".stopReporting"))
-setMethod(".stopReporting", signature(.Object="Universe"),
-	function(.Object) {
-		logconn <- getFileConnection(.Object, "logFile")
-		if (!is.null(logconn) && class(logconn) == "externalptr") {
-			logpath <- .Call("getpathFileConnection", .Object$.logconn, PACKAGE="EPOC")
-			writeFileConnection(.Object, logconn, paste(date(), ": Closing log file connection: ", oldlogpath))
-			closeFileConnection(.Object, logconn)
-		}
-
-		return(invisible(.Object))
-	}
-)
+# setMethod(".stopReporting", signature(.Object="Universe"),
+# 	function(.Object) {
+# 		logconn <- getFileConnection(.Object, "logFile")
+# 		if (!is.null(logconn) && class(logconn) == "externalptr") {
+# 			logpath <- .Call("getpathFileConnection", .Object$.logconn, PACKAGE="EPOC")
+# 			writeFileConnection(.Object, logconn, paste(date(), ": Closing log file connection: ", oldlogpath))
+# 			closeFileConnection(.Object, logconn)
+# 		}
+#
+# 		return(invisible(.Object))
+# 	}
+# )
 #C.SE.Setup.universe.01<-function (Universe, Calendar)
 # Function:           C.SE.Setup.universe.01
 # Description:        Setup the universe that may have generic functions but also need to invoke the setup functions
