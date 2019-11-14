@@ -4,7 +4,7 @@
  * Author: Troy Robertson
  *
  * EPOC.h
- * This file forms part of the API library for EPOC and is included in the 
+ * This file forms part of the API library for EPOC and is included in the
  * EPOC R package along with:
  * EPOC.h
  * EPOC.cpp
@@ -42,7 +42,7 @@ class FileConnection {
 		std::string readline (int linenum = 0 );
 		std::map<int, std::string> readfile ();
 		bool close ();
-	
+
 	private:
 		std::string path, mode;
 		std::fstream iofile;
@@ -185,7 +185,7 @@ SEXP openRcppFileConn(SEXP fcObj, const char* connpath="", const char* openmode=
 RcppExport SEXP isopenRcppFileConn(SEXP fcObj);
 RcppExport SEXP getpathRcppFileConn(SEXP fcObj);
 RcppExport SEXP getmodeRcppFileConn(SEXP fcObj);
-RcppExport SEXP writeRcppFileConn(SEXP fcobj, SEXP msg, SEXP eol);
+RcppExport SEXP writeRcppFileConn(SEXP fcObj, SEXP msg, SEXP eol);
 SEXP writeRcppFileConn(SEXP fcObj, const char* msg, bool eol=true);
 RcppExport SEXP readlineRcppFileConn(SEXP fcObj, SEXP linenum);
 SEXP readlineRcppFileConn(SEXP fcObj, int linenum=0);
