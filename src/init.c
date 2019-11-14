@@ -16,7 +16,6 @@
   e.g., with different numbers of arguments:
 
     openRcppFileConn
-    writeRcppFileConn
 
   This needs to be resolved in the tables and any declarations.
 */
@@ -35,7 +34,6 @@ extern SEXP openRcppFileConn(SEXP);
 extern SEXP openRcppFileConn(SEXP, SEXP, SEXP);
 extern SEXP readlineRcppFileConn(SEXP, SEXP);
 extern SEXP readRcppFileConn(SEXP);
-extern SEXP writeRcppFileConn(SEXP, SEXP);
 extern SEXP writeRcppFileConn(SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
@@ -48,7 +46,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"openRcppFileConn",      (DL_FUNC) &openRcppFileConn,      3},
     {"readlineRcppFileConn",  (DL_FUNC) &readlineRcppFileConn,  2},
     {"readRcppFileConn",      (DL_FUNC) &readRcppFileConn,      1},
-    {"writeRcppFileConn",     (DL_FUNC) &writeRcppFileConn,     2},
     {"writeRcppFileConn",     (DL_FUNC) &writeRcppFileConn,     3},
     {NULL, NULL, 0}
 };

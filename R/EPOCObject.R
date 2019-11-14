@@ -1,11 +1,11 @@
 ################################################################################
 # EPOC Base Object class
 #
-# Base (virtual) class which all others inherit from.  
-# This includes the mechanisms for loading input data and parsing it into slots.  
-# All input data which does not match a slot is inserted into the params slot list.  
+# Base (virtual) class which all others inherit from.
+# This includes the mechanisms for loading input data and parsing it into slots.
+# All input data which does not match a slot is inserted into the params slot list.
 # Its methods are available to all other class objects.
-# This class inherits from .environment.  
+# This class inherits from .environment.
 #
 # S4 Class
 # Created 14/5/2009 Troy Robertson
@@ -20,17 +20,17 @@ setClass("EPOCObject",
 					   signature		= "Signature",		# Signature object
 					   epocAttributes	= "list",			# all additional parameters that do not fit into a slot are listed here
 					   .msglevel 		= "character",		# EPOC messaging and logging arguments
-					   .loglevel 		= "character",	
+					   .loglevel 		= "character",
 					   .logfile 		= "character",
 					   .logtrunc 		= "logical",
 					   "VIRTUAL"
-		),		   
+		),
         prototype(	   inputData		= list(),
 					   dataPath			= "",
 					   signature		= new("Signature"),
 					   epocAttributes	= list(),
 					   .msglevel 		= "normal",			# EPOC messaging and logging arguments
-					   .loglevel 		= "quiet",	
+					   .loglevel 		= "quiet",
 					   .logfile 		= "EPOC.log",
 					   .logtrunc 		= FALSE
 		),
@@ -43,26 +43,26 @@ setClass("EPOCObject",
 # PRIVATE method
 setMethod("initialize", signature(.Object="EPOCObject"),
     function(.Object, dataPath=NULL, sublist=NULL, msglevel=NULL, loglevel=NULL, logconn=NULL, ..., .xData=new.env(parent=emptyenv())) {
-		if (!is.null(dataPath)) {				# EPOCObject does not need to have an input data file	
-		
+		if (!is.null(dataPath)) {				# EPOCObject does not need to have an input data file
+
 			.Object@dataPath <- dataPath
-			
+
 			.Object <- callNextMethod(.Object, ..., .xData=.xData)
-			
+
 			# Define and initialise xData environment slots
-			# These are defined like this because they are transient data members 
+			# These are defined like this because they are transient data members
 			# and so are passed by reference to avoid excessive memcpy
 			########################################################################
 			.Object[['fileConnections']] <- list()
 			#.Object[['connectionManager']] <- .Call("createConnectionManager", PACKAGE="EPOC")
 			########################################################################
-			
+
 			# Set reporting args
 			if (!is.null(msglevel) && msglevel != "") .Object@.msglevel <- msglevel
 			if (!is.null(loglevel) && loglevel != "") .Object@.loglevel <- loglevel
-			if (!is.null(logconn)) addFileConnection(.Object, logconn, "logFile") 
+			if (!is.null(logconn)) addFileConnection(.Object, logconn, "logFile")
 			#if (!is.null(logconn)) .Call("addConnection", .Object$connectionManager, logconn, "logFile", PACKAGE="EPOC")
-			
+
 			# load input data source
 			if (file.exists(dataPath)) {
 				if (is.null(sublist) || sublist == 0) {
@@ -70,14 +70,14 @@ setMethod("initialize", signature(.Object="EPOCObject"),
 				} else {
 					.Object@inputData <- source(file=dataPath)[[1]][[sublist]]
 				}
-				
+
 				# Set the signature if data is available (check for capitalized listname too)
 				.Object@signature <- setSignature(.Object@signature, getNoCase(.Object@inputData, "signature"))
 			} else {
 				epocErrorMessage(.Object, "Object: ",class(.Object)," unable to find input data file at: ",dataPath, halt=TRUE)
 			}
-		}	
-		
+		}
+
 		return(.Object)
 	}
 )
@@ -103,10 +103,10 @@ setMethod("[[<-", "EPOCObject",
 setGeneric("parseInputData", function(.Object) standardGeneric("parseInputData"))
 setMethod("parseInputData", signature(.Object="EPOCObject"),
     function(.Object) {
-	
+
 		.Object@epocAttributes <- list()
 		if(!is.null(.Object@inputData) && length(.Object@inputData) > 0) {
-		
+
 			dataNames <- names(.Object@inputData)[tolower(names(.Object@inputData)) != "signature"]			# remove signature from vector
 			slots <- slotNames(.Object)
 			for (i in seq_along(dataNames)) {						# for each available object slot
@@ -118,7 +118,7 @@ setMethod("parseInputData", signature(.Object="EPOCObject"),
 					# No matching slot found so add to epocAttributes list
 					.Object@epocAttributes[dataNames[[i]]] <- list(.Object@inputData[[dataNames[[i]]]])
 				}
-				
+
 				# check for errors occurring
 				if (exists("error") && class(error) == "try-error") {
 					epocMessage(universe, "Attribute '",dataNames[[i]],"' not loaded correctly for object ",.Object@signature@Name.short,". Datatype matching error occurred!")
@@ -127,28 +127,28 @@ setMethod("parseInputData", signature(.Object="EPOCObject"),
 				}
 			}
 		}
-		
+
 		# Now drop unneeded inputData structure
 		if (!is.null(.Object@.msglevel) && .Object@.msglevel != "debug") .Object@inputData <- list(NULL)
-		
+
 		return(.Object)
 	}
 )
 
 # Get the named file connection handle if it is listed else return NULL
 # If listed but not open then open the connection first
-# If a filepath is passed then open file if it is not listed, open or path/mode has changed 
+# If a filepath is passed then open file if it is not listed, open or path/mode has changed
 # and then store in named fileConnections list
 # Return the connection or NULL if fails
 # Parameters:
 #	connname	character	name of connection
 #	filepath	character 	path to file to open (optional)
-#	openmode	character 	c(“a”, “w”, “r”) defaults to “a”
+#	openmode	character 	c(?a?, ?w?, ?r?) defaults to ?a?
 setGeneric("getFileConnection", function(.Object, connname, ...) standardGeneric("getFileConnection"))
 setMethod("getFileConnection", signature(.Object="EPOCObject", connname="character"),
     function(.Object, connname, filepath=missing, openmode="a") {
 		if (connname == "") return()
-		
+
 		if (connname %in% names(.Object$fileConnections)) {
 			if (!is.null(.Object$fileConnections[[connname]]) && class(.Object$fileConnections[[connname]]) == "externalptr") {
 				if (!missing(filepath) && !is.null(filepath) && filepath != "") {
@@ -167,7 +167,7 @@ setMethod("getFileConnection", signature(.Object="EPOCObject", connname="charact
 			.Object$fileConnections[[connname]] <- .Call("createRcppFileConn", filepath, openmode, PACKAGE="EPOC")
 			if (.Call("isopenRcppFileConn", .Object$fileConnections[[connname]], PACKAGE="EPOC")) return(.Object$fileConnections[[connname]])
 		}
-		
+
 		return(NULL)
     }
 )
@@ -180,7 +180,7 @@ setMethod("getFileConnection", signature(.Object="EPOCObject", connname="charact
 		# if (is.null(.Object$connectionManager) || class(.Object$connectionManager) != "externalptr") {
 			# .Object$connectionManager <- .Call("createConnectionManager", PACKAGE="EPOC")
 		# }
-		
+
 		# cat("getting connection to", conn, "\n")
 		# #if (.Object@signature@Name.short == "Es-KPFM" && conn == "abundNState") stop()
 		# fc <- .Call("getConnection", .Object$connectionManager, conn, PACKAGE="EPOC")
@@ -190,7 +190,7 @@ setMethod("getFileConnection", signature(.Object="EPOCObject", connname="charact
 			# fc <- .Call("openConnection", .Object$connectionManager, conn, filepath, openmode, PACKAGE="EPOC")
 			# epocDebugMessage(.Object, "EPOCObject: ", .Object@signature@Name.short, " is opening connection '", conn, "' to: ", filepath)
 		# }
-		
+
 		# return(fc)
     # }
 # )
@@ -218,7 +218,7 @@ setMethod("writeFileConnection", signature(.Object="EPOCObject", conn="character
 		if (is.null(msg)) return(FALSE)
 		fc <- getFileConnection(.Object, conn, filepath, openmode)
 		if (!is.null(fc)) return(writeFileConnection(.Object, conn=fc, msg=toString(paste(toString(msg), ..., sep=sep, eol=eol))))
-		
+
 		# Failed to open file
 		return(FALSE)
 	}
@@ -230,7 +230,7 @@ setMethod("writeFileConnection", signature(.Object="EPOCObject", conn="character
 # The next line as determined by C++ level pointer will be returned unless linenum is specified
 # Parameters:
 #	conn	externalptr/character	name of connection or pointer to connection
-#	linenum		integer				Line number to read (starting at line 1 (defaults to current C++ filepointer)		
+#	linenum		integer				Line number to read (starting at line 1 (defaults to current C++ filepointer)
 # Returns:
 #	character string if linenum >= 0 otherwise a list of character strings corresponding to lines
 setGeneric("readFileConnection", function(.Object, conn, ...) standardGeneric("readFileConnection"))
@@ -247,7 +247,7 @@ setMethod("readFileConnection", signature(.Object="EPOCObject", conn="character"
     function(.Object, conn, linenum=-1, filepath=NULL, openmode="r") {
 		fc <- getFileConnection(.Object, conn, filepath, openmode)
 		if (!is.null(fc)) return(readFileConnection(.Object, conn=fc, linenum=linenum))
-		
+
 		return(NA)		# Failed to open file
 	}
 )
@@ -261,11 +261,11 @@ setGeneric("addFileConnection", function(.Object, conn, connname) standardGeneri
 setMethod("addFileConnection", signature(.Object="EPOCObject", conn="externalptr", connname="character"),
     function(.Object, conn, connname) {
 		if (connname == "") return()
-		
+
 		closeFileConnection(.Object, connname)
 		epocDebugMessage(.Object, class(.Object), ": ", .Object@signature@Name.short, " is adding connection '", connname, "'")
 		.Object$fileConnections[[connname]] <- conn
-		
+
 		return(.Object)
     }
 )
@@ -278,7 +278,7 @@ setMethod("addFileConnection", signature(.Object="EPOCObject", conn="externalptr
 #	conn	externalptr/character	name of connection or pointer to connection (optional)
 setGeneric("closeFileConnection", function(.Object, conn) standardGeneric("closeFileConnection"))
 setMethod("closeFileConnection", signature(.Object="EPOCObject", conn="externalptr"),
-    function(.Object, conn) {	
+    function(.Object, conn) {
 		success <- .Call("closeRcppFileConn", conn, PACKAGE="EPOC")
 		epocDebugMessage(.Object, class(.Object), ": ", .Object@signature@Name.short, " is closing connection")
 		return(success)
@@ -326,7 +326,7 @@ setGeneric("getAttributeNames", function(.Object) standardGeneric("getAttributeN
 setMethod("getAttributeNames", signature(.Object="EPOCObject"),
     function(.Object) return(names(.Object@epocAttributes))
 )
-	
+
 # Return the objects epocAttributes list
 # If list item name is passed then return the value at that list psoition instead
 # Parameters:
@@ -385,7 +385,7 @@ setMethod("getSlot", signature(.Object="EPOCObject", item="character"),
 			# TR Could have an else clause which checks epocAttributes list if item doesn't exist
 			epocErrorMessage(.Object, "Object: ", .Object@signature@Name.short, " is missing requested Slot : ", item, halt=TRUE)
 		}
-		
+
 		return(NA)
 	}
 )
@@ -405,7 +405,7 @@ setMethod("setSlot", signature(.Object="EPOCObject", item="character", value="AN
 			# TR Could have an else clause which appends it to epocAttributes list if item not found
 			epocErrorMessage(.Object, "Object: ", .Object@signature@Name.short, " is missing assigned Slot : ", item, halt=TRUE)
 		}
-		
+
 		return(.Object)
 	}
 )
@@ -440,7 +440,7 @@ setMethod("epocVerboseMessage", signature(.Object="EPOCObject", msg="ANY"),
 	}
 )
 
-# Print debug messages to stdout and log file as dictated by .msglevel="debug" 
+# Print debug messages to stdout and log file as dictated by .msglevel="debug"
 # and .loglevel="debug"
 setGeneric("epocDebugMessage", function(.Object, msg, ...) standardGeneric("epocDebugMessage"))
 setMethod("epocDebugMessage", signature(.Object="EPOCObject", msg="ANY"),
@@ -475,7 +475,7 @@ setMethod(".logEPOCMessage", signature(.Object="EPOCObject", msg="ANY"),
 	function(.Object, msg="", ..., sep="", flag="") {
 		logconn <- .Object$fileConnections$logFile
 		if (!is.null(logconn) && class(logconn) == "externalptr" && .Call("isopenRcppFileConn", logconn, PACKAGE="EPOC")) {
-			.Call("writeRcppFileConn", logconn, toString(paste(flag, toString(msg), ..., sep=sep)), PACKAGE="EPOC")				
+			.Call("writeRcppFileConn", logconn, toString(paste(flag, toString(msg), ..., sep=sep)), TRUE, PACKAGE="EPOC")
 		}
 	}
 )

@@ -2,8 +2,8 @@
 # EPOC Universe class
 #
 # Representation of the universe with its associated module elements, scenario information,
-# spatial/polygon information and reporting formatting.  
-# Universe input data is parsed from universe.data file found at the path passed to constructor. 
+# spatial/polygon information and reporting formatting.
+# Universe input data is parsed from universe.data file found at the path passed to constructor.
 #
 # S4
 # Created 5/2/2009 Troy Robertson
@@ -20,7 +20,7 @@ setClass("Universe",
         inputPaths  	= "list",		# paths to all element class source files and input data files
         baseDirectory	= "character",	# Current working directory
 		created			= "logical"),	# Has universe already been created (as opposed to instantiated)
-		
+
     prototype(
 		spatial			= new("Spatial"),
 		scenarios		= list(),
@@ -39,36 +39,36 @@ setMethod("initialize", "Universe",
 								loglevel=getOption("epocloglevel"), logfile=NULL, logtrunc=TRUE, create=TRUE) {
 		# Set working base directory
 		.Object@baseDirectory <- dirname(dirname(dataPath))
-		
+
 		# Set up messaging and logging early from arguments
 		logconn <- NULL
 		if (!is.null(loglevel) && loglevel != "quiet") {
 			openmode <- ifelse(is.null(logtrunc) || !logtrunc, "a", "w")
 			logpath <- file.path(getwd(), ifelse(!is.null(logfile) && logfile != "", logfile, .Object@.logfile))
 			logconn <- .Call("createRcppFileConn", logpath, openmode, PACKAGE="EPOC")
-			.Call("writeRcppFileConn", logconn, paste(date(), ": Opening log file connection: ", logpath), PACKAGE="EPOC")
+			.Call("writeRcppFileConn", logconn, paste(date(), ": Opening log file connection: ", logpath), TRUE, PACKAGE="EPOC")
 		}
-		
+
 		# Suck in data.  logconn will start working after this
 		.Object <- callNextMethod(.Object, dataPath, msglevel=msglevel, loglevel=loglevel, logconn=logconn)
-		
+
 		if (!file.exists(dataPath)) {
 			epocErrorMessage(.Object, "Failed to find the Universe data input file at: ", dataPath, halt=TRUE)
 		}
-		
+
 		# Initialise modules in environment .xData
 		###########################################################
 		.Object[['realtimeState']] <- list()	# Used to store real time information during simulation run
 		.Object[['modules']] <- list()			# List of module which are in turn lists of elements
 		###########################################################
-		
+
 		# Pull input data into class slots
 		.Object <- parseInputData(.Object)
-		
+
 		# Set some Reporting defaults if they haven't already been set by the Universe data input
 		# This may fire up logging if not explicitely specified by arguments to constructor
 		.Object <- .resetReporting(.Object, msglevel, loglevel, logfile, logtrunc)
-		
+
 		invalidPaths <- testInputPaths(.Object)
         if (length(invalidPaths) > 0) {
 			epocErrorMessage(.Object, "Failed to find the following input paths:")
@@ -80,7 +80,7 @@ setMethod("initialize", "Universe",
 			.Object <- createUniverse(.Object)
 			.Object@created = TRUE
         }
-		
+
 		return(.Object)
     }
 )
@@ -106,11 +106,11 @@ setMethod("testInputPaths", signature(.Object="Universe"),
 							} else if (is.null(inputPaths$classFile) && !isClass(inputPaths$className)) {
 								invalidPaths <- c(invalidPaths, paste(modNames[[m]]," (",elemNames[[e]], ") Missing classFile input data!", sep=""))
 							} else if (!is.null(inputPaths$classFile) && !file.exists(getBasePath(.Object, inputPaths$classFile))) {
-								invalidPaths <- c(invalidPaths, paste(modNames[[m]]," (",elemNames[[e]], ") Class path = ", 
+								invalidPaths <- c(invalidPaths, paste(modNames[[m]]," (",elemNames[[e]], ") Class path = ",
 																		getBasePath(.Object, inputPaths$classFile), sep=""))
 							}
 							if (is.null(inputPaths$classData) || !file.exists(getBasePath(.Object, inputPaths$classData))) {
-								invalidPaths <- c(invalidPaths, paste(modNames[[m]]," (",elemNames[[e]], ") Data path = ", 
+								invalidPaths <- c(invalidPaths, paste(modNames[[m]]," (",elemNames[[e]], ") Data path = ",
 																		getBasePath(.Object, inputPaths$classData), sep=""))
 							}
 						}
@@ -118,7 +118,7 @@ setMethod("testInputPaths", signature(.Object="Universe"),
 				}
 			}
 		}
-			
+
 		return(invalidPaths)
     }
 )
@@ -134,17 +134,17 @@ setMethod("createUniverse", signature(.Object="Universe"),
 
         # Load spatial (Polygon) information
 		.Object@spatial <- new("Spatial", getBasePath(.Object, .Object@inputPaths$Config$Polygons))
-		
+
 		# Load and instantiate each scenario
 		.Object@scenarios <- list()
 		scenarioNames <- names(source(file=getBasePath(.Object, .Object@inputPaths$Config$Scenario))[[1]])
 		scenarioN <- length(source(file=getBasePath(.Object, .Object@inputPaths$Config$Scenario))[[1]])
 		for (i in 1:scenarioN) {
-			.Object@scenarios[[scenarioNames[[i]]]] <- new("Scenario", universe=.Object, 
+			.Object@scenarios[[scenarioNames[[i]]]] <- new("Scenario", universe=.Object,
 													dataPath=getBasePath(.Object, .Object@inputPaths$Config$Scenarios), i)
 		}
 		epocVerboseMessage(.Object, "Loaded Scenarios - scenariosN = ",as.character(ifelse(!is.null(.Object@scenarios), length(.Object@scenarios),0)))
-		
+
 		# Report params now loaded from Universe data file and stored in slot report
 		logconn <- getFileConnection(.Object, "logFile")
 
@@ -153,7 +153,7 @@ setMethod("createUniverse", signature(.Object="Universe"),
 			elements <- NULL
 			if (mod %in% names(.Object@inputPaths)) {
 				elements <- list()
-				
+
                 # for each module element
 				elemNames <- names(.Object@inputPaths[[mod]])
 				for (ele in seq_along(.Object@inputPaths[[mod]])) {
@@ -162,10 +162,10 @@ setMethod("createUniverse", signature(.Object="Universe"),
 						className <- inputPaths$className
 						# testInputPaths() should already have weeded out any NULL classFile with class already available
 						# So load source for class.  This will overload any existing class of same name!!
-						if (!is.null(inputPaths$classFile)) source(file = getBasePath(.Object, inputPaths$classFile))  
+						if (!is.null(inputPaths$classFile)) source(file = getBasePath(.Object, inputPaths$classFile))
 						# instaniate object
 						elements[[elemNames[[ele]]]] = new(className, universe=.Object, dataPath=getBasePath(.Object, inputPaths$classData),
-															msglevel=.Object@.msglevel, loglevel=.Object@.loglevel, logconn=logconn) 
+															msglevel=.Object@.msglevel, loglevel=.Object@.loglevel, logconn=logconn)
 						# source any separate class methods
 						sourceMethods(elements[[elemNames[[ele]]]], getBasePath(.Object))
 					}
@@ -174,7 +174,7 @@ setMethod("createUniverse", signature(.Object="Universe"),
 			}
 			.Object$modules[[mod]] <- elements
 		}
-		
+
         epocVerboseMessage(.Object, "Finished loading universe")
         return(.Object)
     }
@@ -198,13 +198,13 @@ setMethod("getEPOCElement", signature(.Object="Universe", modID="ANY", elemID="A
 		} else {
 			return(NULL)
 		}
-		
+
 		if (is.character(elemID) && elemID %in% names(.Object$modules[[modIndx]])) {
 			elemIndx <- which(names(.Object$modules[[modIndx]]) == elemID)
 		} else if (is.numeric(elemID) && elemID > 0 && elemID <= length(.Object$modules[[modIndx]])) {
 			elemIndx <- elemID
 		}
-		
+
 		if (modIndx > 0 && elemIndx > 0) return(.Object$modules[[modIndx]][[elemIndx]])
 		return(NULL)
 	}
@@ -226,7 +226,7 @@ setMethod("setEPOCElement", signature(.Object="Universe", modID="ANY", elemID="A
 						as.character(modID), "' as element '", as.character(elemID), "' failed!")
 			epocErrorMessage(.Object, trim(error[[1]]), halt=TRUE)
 		}
-		
+
 		return(invisible(.Object))
 	}
 )
@@ -246,7 +246,7 @@ setMethod("getRTState", signature(.Object="Universe", item="missing"),
     function(.Object, item) return(.Object$realtimeState)
 )
 
-# NOTE: Not necessary to have available as an API method as all RTState values are set by 
+# NOTE: Not necessary to have available as an API method as all RTState values are set by
 # controller or universe itself
 # Set the state object for this object with that passed
 # If listName passed then set value at slot in state if available
@@ -258,13 +258,13 @@ setMethod("getRTState", signature(.Object="Universe", item="missing"),
 		# } else {
 			# .Object@realtimeState[[listName]] <- value
 		# }
-		
+
 		# return(.Object)
     # }
 # )
 
 # Return the base directory path
-# If extPath is passed then full path to file is returned 
+# If extPath is passed then full path to file is returned
 # Parameters:
 #	extPath		character	extension to base directory (optional)
 setGeneric("getBasePath", function(.Object, extPath) standardGeneric("getBasePath"))
@@ -278,7 +278,7 @@ setMethod("getBasePath", signature(.Object="Universe", extPath="missing"),
 )
 
 # Return the runtime output directory path
-# If extPath is passed then full path to file is returned 
+# If extPath is passed then full path to file is returned
 # Parameters:
 #	extPath		character	extension to runtime directory (optional)
 setGeneric("getRuntimePath", function(.Object, extPath) standardGeneric("getRuntimePath"))
@@ -333,12 +333,12 @@ setGeneric("getScenario", function(.Object, scenario, item) standardGeneric("get
 setMethod("getScenario", signature(.Object="Universe", scenario="ANY", item="character"),
     function(.Object, scenario=0, item) {
         if (is.null(.Object@scenarios) || length(.Object@scenarios) <= 0) return(NULL)
-		
+
 		# Use currentscenario by default
 		scenarioIdx <- .Object$realtimeState$currentScenario
 		if (is.null(scenarioIdx) || scenarioIdx <= 0) scenarioIdx = 1
 		if (!missing(scenario) && !is.null(scenario) && scenario > 0) scenarioIdx <- scenario
-		
+
 		# return slot detail from scenario if item specified
 		if (item != "") return(getSlot(.Object@scenarios[[scenarioIdx]], item))
 		return(.Object@scenarios[[scenarioIdx]])
@@ -353,7 +353,7 @@ setMethod("getScenario", signature(.Object="Universe", scenario="missing", item=
 
 # Returns a vector containing the module/element list indexes = c(moduleListIndex, elementListIndex)
 # Returns an index of 0 for list names not found
-# Parameters: 
+# Parameters:
 #	moduleName  	character	list name of module (optional)
 #	element 		character	list name of element
 setGeneric("getElementIndexes", function(.Object, moduleName, element) standardGeneric("getElementIndexes"))
@@ -378,12 +378,12 @@ setMethod("getElementIndexes", signature(.Object="Universe", moduleName="charact
 					if (!(exists("error") && class(error) == "try-error") && length(eIdx) > 0) {
 						epocDebugMessage(.Object, msg, "(", mIdx, ",", eIdx, ")")
 						return(c(mIdx,eIdx))
-					} 
+					}
 					remove(error)
 				}
-			}	
+			}
 		}
-		
+
 		return(c(0,0))
     }
 )
@@ -394,7 +394,7 @@ setMethod("getElementIndexes", signature(.Object="Universe", moduleName="missing
 # Returns an vector containing the element c(moduleListIndex, elementListIndex)
 # Search elements by EPOC signature ID
 # Returns an index of 0 for list names not found
-# Parameters: 
+# Parameters:
 #	moduleName 		character 	list name of module (optional)
 #	element 		numeric		signature ID of element
 setMethod("getElementIndexes", signature(.Object="Universe", moduleName="character", element="numeric"),
@@ -418,12 +418,12 @@ setMethod("getElementIndexes", signature(.Object="Universe", moduleName="charact
 					if (!(exists("error") && class(error) == "try-error") && length(eIdx) > 0) {
 						epocDebugMessage(.Object, msg, "(", mIdx, ",", eIdx, ")")
 						return(c(mIdx,eIdx))
-					} 
+					}
 					remove(error)
 				}
-			}	
+			}
 		}
-		
+
 		epocDebugMessage(.Object, msg, "(Not found!)")
 		return(c(0,0))
     }
@@ -441,7 +441,7 @@ setMethod("reSourceElementClasses", signature(.Object="Universe"),
 			elemNames <- names(.Object$modules[[ec]])
 			for (e in seq_along(.Object$modules[[ec]])) {
 				# load source for class
-				source(file = getBasePath(.Object, .Object@inputPaths[[modNames[[ec]]]][[elemNames[[e]]]]$classFile))       
+				source(file = getBasePath(.Object, .Object@inputPaths[[modNames[[ec]]]][[elemNames[[e]]]]$classFile))
 			}
 		}
 	}
@@ -459,7 +459,7 @@ setMethod("reSourceElementMethods", signature(.Object="Universe"),
 				methodSources[[elementNames[e]]] <- sourceMethods(.Object$modules[[ec]][[e]], getBasePath(.Object))
 			}
 		}
-		
+
 		return(methodSources)
 	}
 )
@@ -483,7 +483,7 @@ setMethod(".resetReporting", signature(.Object="Universe"),
 							Heading2 = "------------------------------------------------------------------",
 							Heading3 = "+++++++++++++++++++++++++++++++++++++",
 							Heading4 = "     ................................"))
-		
+
 		# then replace any NULL/missing settings with defaults
 		if (is.null(.Object@report)) {
 			.Object@report <- repdef
@@ -511,7 +511,7 @@ setMethod(".resetReporting", signature(.Object="Universe"),
 				if (is.null(.Object@report$HeadLines$Heading4)) .Object@report$HeadLines[["Heading4"]] <- repdef$HeadLines$Heading4
 			}
 		}
-		
+
 		# Prioritise by argument, then input file, thirdly the dafault
 		if (!is.null(msglevel) && msglevel != "") .Object@report$Diagnostics$Output$Level <- msglevel
 		if (!is.null(loglevel) && loglevel != "") .Object@report$Diagnostics$Log$Level <- loglevel
@@ -521,7 +521,7 @@ setMethod(".resetReporting", signature(.Object="Universe"),
 		.Object@.loglevel <- .Object@report$Diagnostics$Log$Level
 		.Object@.logfile <- .Object@report$Diagnostics$Log$Filename
 		.Object@.logtrunc <- .Object@report$Diagnostics$Log$Truncate
-		
+
 		logpath <- file.path(getwd(), .Object@.logfile)
 		logconn <- getFileConnection(.Object, "logFile")
 		# If log is open and path has changed then close so it can be reopened
@@ -531,14 +531,14 @@ setMethod(".resetReporting", signature(.Object="Universe"),
 			closeFileConnection(.Object, logconn)
 		}
 		# Then open if not already opened by explicit arguments
-		if ((is.null(logconn) || class(logconn) != "externalptr" 
+		if ((is.null(logconn) || class(logconn) != "externalptr"
 							|| !.Call("isopenRcppFileConn", logconn, PACKAGE="EPOC")) && .Object@.loglevel != "quiet") {
 			openmode <- ifelse(.Object@.logtrunc, "w", "a")
 			epocDebugMessage(.Object, date(), ": Opening log file connection: ", logpath)
 			logconn <- getFileConnection(.Object, "logFile", logpath, openmode)
 			writeFileConnection(.Object, logconn, paste(date(), ": Opening log file connection: ", logpath))
 		}
-		
+
 		# Debug message the current settings
 		epocDebugMessage(.Object, "Output and log settings:")
 		epocDebugMessage(.Object, "Output - ", .Object@.msglevel, ", Logging - ", .Object@.loglevel,
@@ -547,7 +547,7 @@ setMethod(".resetReporting", signature(.Object="Universe"),
 		epocDebugMessage(.Object, "ToFile - ", .Object@report$Diagnostics$Calendar$ToFile, ", Calendar file - ", .Object@report$Diagnostics$Calendar$Filename)
 		epocDebugMessage(.Object, "Debug settings:")
 		epocDebugMessage(.Object, "Debug - ", .Object@report$Diagnostics$Debug)
-		
+
 		return(.Object)
 	}
 )
@@ -562,7 +562,7 @@ setMethod(".stopReporting", signature(.Object="Universe"),
 			writeFileConnection(.Object, logconn, paste(date(), ": Closing log file connection: ", oldlogpath))
 			closeFileConnection(.Object, logconn)
 		}
-		
+
 		return(invisible(.Object))
 	}
 )
@@ -625,10 +625,10 @@ setMethod(".setupUniverse", "Universe",
 			for (e in seq_along(.Object$modules[[ec]])) {
 				epocVerboseMessage(.Object, "      Setting up element ", elementNames[e])
 				# auto setup for all modules with time steps and convert Related ID numbers to relative
-				.Object$modules[[ec]][[e]] <- .setupUniverseElement(.Object, .Object$modules[[ec]][[e]])        
+				.Object$modules[[ec]][[e]] <- .setupUniverseElement(.Object, .Object$modules[[ec]][[e]])
 			}
         }
-		
+
 		return(.Object)
     }
 )
@@ -665,24 +665,24 @@ setGeneric(".setupUniverseElement", function(.Object, element="Element") standar
 setMethod(".setupUniverseElement", "Universe",
     function(.Object, element) {
         if (is.null(element)) return(invisible())
-        
+
         # Change ID of related elements from absolute to a relative id, else NA
 		for (tn in seq_along(element@timesteps)) {
 			if(element@timesteps[[tn]]$actionsN > 0){
 				for (a in seq_along(element@timesteps[[tn]]$actions)) {
 					element@timesteps[[tn]]$actions[[a]]["relatedIndexes.N"] <- list(NULL)					# create new attributes
-					element@timesteps[[tn]]$actions[[a]]["relatedIndexes"] <- list(NULL)					
-					
+					element@timesteps[[tn]]$actions[[a]]["relatedIndexes"] <- list(NULL)
+
 					RelEls <- element@timesteps[[tn]]$actions[[a]]$relatedElements
 					if(!is.null(RelEls)){
 						NrelatedElements<-nrow(RelEls)
 						element@timesteps[[tn]]$actions[[a]]$relatedElements.N <- NrelatedElements
 						element@timesteps[[tn]]$actions[[a]]$relatedIndexes.N <- NrelatedElements
 						element@timesteps[[tn]]$actions[[a]]$relatedIndexes <- matrix(ncol=2, nrow=NrelatedElements ,byrow=TRUE)		# initialise new attributes
-						
+
 						for (e in 1:NrelatedElements) {
 							element@timesteps[[tn]]$actions[[a]]$relatedIndexes[e,] <- getElementIndexes(.Object, RelEls[e,1], RelEls[e,2])
-							# Show warning if element not found 
+							# Show warning if element not found
 							if (element@timesteps[[tn]]$actions[[a]]$relatedIndexes[e,1] == 0 || element@timesteps[[tn]]$actions[[a]]$relatedIndexes[e,2] == 0) {
 								epocMessage(.Object, "Related element '", RelEls[e,2], "' in module '", RelEls[e,1],"' not found. Required by '", getSignature(element, "Name.short"), "' element")
 							} else {
@@ -708,10 +708,10 @@ setMethod(".setupUniverseElement", "Universe",
             element$transition$CompetitorElementsN <- NrelatedElements
 			element$transition$CompetitorIndexesN <- NrelatedElements
 			element$transition$CompetitorIndexes <- matrix(ncol=2, nrow=NrelatedElements, byrow=TRUE)		# initialise new attributes
-			
+
             for (e in 1:NrelatedElements) {
 				element$transition$CompetitorIndexes[e,] <- getElementIndexes(.Object, RelEls[e,1], RelEls[e,2])
-				# Show warning if element not found 
+				# Show warning if element not found
 				if (element$transition$CompetitorIndexes[e,1] == 0 || element$transition$CompetitorIndexes[e,2] == 0) {
 					epocMessage(.Object, "Competitor element '", RelEls[e,2], "' in module '", RelEls[e,1],"' not found. Required by '", getSignature(element, "Name.short"), "' element")
 				} else {
@@ -719,7 +719,7 @@ setMethod(".setupUniverseElement", "Universe",
 				}
             }
         }
-		
+
 		return(element)
     }
 )
