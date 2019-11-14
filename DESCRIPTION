@@ -1,7 +1,7 @@
 Package: EPOC
 Type: Package
 Title: Ecosystem Productivity Ocean Climate (EPOC) - Modelling Framework
-Version: 0.5.3
+Version: 0.5.3.9001
 Date: 2015-05-24
 Author: Andrew Constable, Troy Robertson
 Maintainer: Troy Robertson <troy.robertson@aad.gov.au>
